@@ -12,9 +12,20 @@ app.use(cors());
 app.use(express.json());
 
 // ===== Connect to MongoDB =====
-mongoose.connect(process.env.MONGO_URI)
-    .then(() => console.log("MongoDB Connected"))
-    .catch((err) => console.error("MongoDB connection error:", err));
+async function connectDB() {
+  try {
+    await mongoose.connect(MONGODB_URI);
+    console.log("MongoDB connected!");
+  } catch (err) {
+    console.error("MongoDB connection error:", err);
+  }
+}
+
+connectDB().then(async () => {
+  const User = mongoose.model("User", new mongoose.Schema({ name: String }));
+  const users = await User.find(); // runs AFTER connection
+  console.log(users);
+});
 
 // ===== Mongoose User Model =====
 const User = mongoose.model(

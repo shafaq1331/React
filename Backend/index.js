@@ -11,21 +11,21 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// ===== Connect to MongoDB =====
-async function connectDB() {
-  try {
-    await mongoose.connect(MONGODB_URI);
-    console.log("MongoDB connected!");
-  } catch (err) {
-    console.error("MongoDB connection error:", err);
-  }
-}
+// ===== MongoDB Connection =====
+const MONGODB_URI = process.env.MONGODB_URI;
 
-connectDB().then(async () => {
-  const User = mongoose.model("User", new mongoose.Schema({ name: String }));
-  const users = await User.find(); // runs AFTER connection
-  console.log(users);
-});
+async function connectDB() {
+    try {
+        await mongoose.connect(MONGODB_URI, {
+            useNewUrlParser: true,
+            useUnifiedTopology: true,
+        });
+        console.log("MongoDB connected!");
+    } catch (err) {
+        console.error("MongoDB connection error:", err);
+        process.exit(1); // Exit if DB connection fails
+    }
+}
 
 // ===== Mongoose User Model =====
 const User = mongoose.model(
@@ -37,7 +37,7 @@ const User = mongoose.model(
 cloudinary.config({
     cloud_name: process.env.CLOUDINARY_NAME,
     api_key: process.env.CLOUDINARY_API_KEY,
-    api_secret: process.env.CLOUDINARY_API_SECRET
+    api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
 // ===== Multer Setup =====
@@ -75,6 +75,9 @@ app.get("/api/users", async (req, res) => {
 
 // ===== Start Server =====
 const PORT = process.env.PORT || 5002;
-app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
+
+connectDB().then(() => {
+    app.listen(PORT, () => {
+        console.log(`Server running on port ${PORT}`);
+    });
 });

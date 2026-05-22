@@ -8,7 +8,11 @@ const cloudinary = require("cloudinary").v2;
 const cors = require("cors");
 
 const app = express();
-app.use(cors());
+app.use(cors({
+  origin: "https://your-frontend.vercel.app", // replace with your actual Vercel frontend URL
+  methods: ["GET", "POST", "PUT", "DELETE"],
+  credentials: true
+}));
 app.use(express.json());
 
 // ===== MongoDB Connection =====

@@ -1,3 +1,6 @@
+// index.js
+require("dotenv").config(); // Load environment variables
+
 const express = require("express");
 const mongoose = require("mongoose");
 const multer = require("multer");
@@ -8,55 +11,59 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-mongoose.connect("mongodb+srv://shafaq:Shafaq1234@cluster0.3zx4df9.mongodb.net/test").then(() => {
-    console.log("MongoDb Connected")
-});
+// ===== Connect to MongoDB =====
+mongoose.connect(process.env.MONGO_URI)
+    .then(() => console.log("MongoDB Connected"))
+    .catch((err) => console.error("MongoDB connection error:", err));
 
+// ===== Mongoose User Model =====
 const User = mongoose.model(
     "User",
     new mongoose.Schema({ image: String }, { strict: false })
 );
 
+// ===== Cloudinary Configuration =====
 cloudinary.config({
-    cloud_name: "di7yfp5ta",
-    api_key: "829571181959791",
-    api_secret: "7ga4FT56xIp2h5bru0aWSYF538g"
+    cloud_name: process.env.CLOUDINARY_NAME,
+    api_key: process.env.CLOUDINARY_API_KEY,
+    api_secret: process.env.CLOUDINARY_API_SECRET
 });
 
+// ===== Multer Setup =====
 const storage = multer.memoryStorage();
 const upload = multer({ storage });
 
-app.post("/api/upload", upload.single("image"), async(req, res) => {
+// ===== Upload Endpoint =====
+app.post("/api/upload", upload.single("image"), async (req, res) => {
     try {
         const file = req.file;
-
-        if (!file) {
-            return res.status(400).json({ error: "Image is required" });
-        }
+        if (!file) return res.status(400).json({ error: "Image is required" });
 
         const b64 = Buffer.from(file.buffer).toString("base64");
         const dataURI = `data:${file.mimetype};base64,${b64}`;
         const result = await cloudinary.uploader.upload(dataURI);
 
-        const userData = {
-            ...req.body,
-            image: result.secure_url,
-        };
-
+        const userData = { ...req.body, image: result.secure_url };
         const user = await User.create(userData);
+
         res.json(user);
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
 });
 
-// ===== Get Users =====
-app.get("/api/users", async(req, res) => {
-    const users = await User.find({});
-    res.json(users);
+// ===== Get Users Endpoint =====
+app.get("/api/users", async (req, res) => {
+    try {
+        const users = await User.find({});
+        res.json(users);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
 });
 
-// ===== Server =====
-app.listen(5002, () => {
-    console.log("Server running on http://localhost:5000");
+// ===== Start Server =====
+const PORT = process.env.PORT || 5002;
+app.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
 });

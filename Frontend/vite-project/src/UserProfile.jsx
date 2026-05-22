@@ -25,7 +25,7 @@ export default function UserProfile() {
       formData.append("email", values.email);
       formData.append("details", values.details);
 
-      const res = await fetch("http://localhost:5002/api/upload", {
+      const res = await fetch("https://react-production-db03.up.railway.app/api/upload", {
         method: "POST",
         body: formData,
       });

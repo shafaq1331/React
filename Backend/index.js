@@ -8,12 +8,15 @@ const cloudinary = require("cloudinary").v2;
 const cors = require("cors");
 
 const app = express();
+
+// ===== CORS Setup =====
 app.use(cors({
-  origin: "https://your-frontend.vercel.app", // replace with your actual Vercel frontend URL
+  origin: "https://react-seven-beryl.vercel.app", // Your actual Vercel frontend URL
   methods: ["GET", "POST", "PUT", "DELETE"],
   credentials: true
 }));
-app.use(express.json());
+
+app.use(express.json()); // JSON body parser
 
 // ===== MongoDB Connection =====
 const MONGODB_URI = process.env.MONGODB_URI;
@@ -24,7 +27,7 @@ async function connectDB() {
         console.log("MongoDB connected!");
     } catch (err) {
         console.error("MongoDB connection error:", err);
-        process.exit(1); // Exit if DB connection fails
+        process.exit(1);
     }
 }
 
@@ -51,6 +54,7 @@ app.post("/api/upload", upload.single("image"), async (req, res) => {
         const file = req.file;
         if (!file) return res.status(400).json({ error: "Image is required" });
 
+        // Convert to base64 for Cloudinary
         const b64 = Buffer.from(file.buffer).toString("base64");
         const dataURI = `data:${file.mimetype};base64,${b64}`;
         const result = await cloudinary.uploader.upload(dataURI);

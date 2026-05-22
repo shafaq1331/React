@@ -7,7 +7,7 @@ export default function UserProfile() {
   const [file, setFile] = useState(null);
 
   useEffect(() => {
-    fetch("http://localhost:5000/api/users")
+    fetch("https://react-production-db03.up.railway.app/api/users")
       .then((res) => res.json())
       .then((data) => setUsers(data));
   }, []);
